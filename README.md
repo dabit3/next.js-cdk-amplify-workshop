@@ -70,8 +70,8 @@ $ npm install -g aws-cdk
 ### Initializing A New Project
 
 ```bash
-$ mkdir next-cdk
-$ cd next-cdk
+$ mkdir next-backend
+$ cd next-backend
 $ cdk init --language=typescript
 ```
 
@@ -89,7 +89,19 @@ To view the resources to be deployed or changes in infrastructure at any time, y
 $ cdk diff
 ```
 
-## Adding an AWS AppSync GraphQL API
+Next, install the CDK dependencies we'll be using:
+
+```sh
+$ yarn add @aws-cdk/aws-cognito @aws-cdk/aws-appsync @aws-cdk/aws-lambda @aws-cdk/aws-dynamodb
+```
+
+## Creating the authentication service with CDK
+
+When working with CDK, the code for the main stack lives in the __lib__ directory.
+
+
+
+## Adding the AWS AppSync GraphQL API with CDK
 
 To add a GraphQL API, we can use the following command:
 
