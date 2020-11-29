@@ -146,66 +146,13 @@ A `userPoolClient` will also be created enabling client applications, in our cas
 
 ## Adding the AWS AppSync GraphQL API with CDK
 
-To add a GraphQL API, we can use the following command:
+To add a GraphQL API, we can use the following 
 
-```sh
-$ amplify add api
-
-? Please select from one of the above mentioned services: GraphQL
-? Provide API name: NextBlog
-? Choose the default authorization type for the API: API key
-? Enter a description for the API key: public
-? After how many days from now the API key should expire (1-365): 365 (or your preferred expiration)
-? Do you want to configure advanced settings for the GraphQL API: No
-? Do you have an annotated GraphQL schema? N 
-? Choose a schema template: Single object with fields
-? Do you want to edit the schema now? (Y/n) Y
-```
-
-The CLI should open this GraphQL schema in your text editor.
-
-__amplify/backend/api/NextBlog/schema.graphql__
-
-Update the schema to the following:   
-
-```graphql
-type Post @model {
-  id: ID!
-  title: String!
-  content: String!
-}
-```
-
-After saving the schema, go back to the CLI and press enter.
-
-### Deploying the API
-
-To deploy the API, run the push command:
-
-```
-$ amplify push
-
-? Are you sure you want to continue? Y
-
-# You will be walked through the following questions for GraphQL code generation
-? Do you want to generate code for your newly created GraphQL API? Y
-? Choose the code generation language target: javascript
-? Enter the file name pattern of graphql queries, mutations and subscriptions: ./graphql/**/*.js
-? Do you want to generate/update all possible GraphQL operations - queries, mutations and subscriptions? Yes
-? Enter maximum statement depth [increase from default if your schema is deeply nested]: 2
-```
-
-Now the API is live and you can start interacting with it!
 
 ### Testing the API
 
-To test it out we can use the GraphiQL editor in the AppSync dashboard. To open the AppSync dashboard, run the following command:
+To test it out we can use the GraphiQL editor in the AppSync dashboard. To open the AppSync dashboard, go to .
 
-```sh
-$ amplify console api
-
-> Choose GraphQL
-```
 
 In the AppSync dashboard, click on __Queries__ to open the GraphiQL editor. In the editor, create a new post with the following mutation:
 
