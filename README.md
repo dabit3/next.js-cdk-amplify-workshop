@@ -2,13 +2,13 @@
 
 ![Next.js Amplify Workshop](images/banner.jpg)
 
-In this workshop we'll learn how to build a full stack cloud application with Next.js, AWS CDK, GraphQL, & [AWS Amplify](https://docs.amplify.aws/).
+In this workshop we'll build a full stack cloud application with Next.js, AWS CDK, AWS AppSync, & [AWS Amplify](https://docs.amplify.aws/).
 
 ### Overview
 
 We'll start from scratch, creating a new Next.js app. We'll then, step by step, use CDK to build out and configure our cloud infrastructure and then use the [Amplify JS Libraries](https://github.com/aws-amplify/amplify-js) to connect the Next.js app to the APIs we create using CDK.
 
-The app will be a blogging app with a markdown editor. When you think of many types of applications like Instagram, Twitter, or Facebook, they consist of a list of items and often the ability to drill down into a single item view. The app we will be building will be very similar to this, displaying a list of posts with data like the title, content, and author of the post.
+The app will be a multi-user blogging app with a markdown editor. When you think of many types of applications like Instagram, Twitter, or Facebook, they consist of a list of items and often the ability to drill down into a single item view. The app we will be building will be very similar to this, displaying a list of posts with data like the title, content, and author of the post.
 
 This workshop should take you anywhere between 6 to 8 hours to complete.
 
@@ -18,7 +18,7 @@ Before we begin, make sure you have the following:
 
 - Node.js v10.3.0 or later  installed
 - A valid and confirmed AWS account
-- You must provide your credentials and an AWS Region to use AWS CDK, if you have not already done so. If you have the AWS CLI installed, the easiest way to satisfy this requirement is to [install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) and issue the following command:
+- You must provide IAM credentials and an AWS Region to use AWS CDK, if you have not already done so. If you have the AWS CLI installed, the easiest way to satisfy this requirement is to [install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) and issue the following command:
 
 ```sh
 aws configure
@@ -30,7 +30,7 @@ We will be working from a terminal using a [Bash shell](https://en.wikipedia.org
 
 ### Background needed / level
 
-This workshop is intended for intermediate to advanced front end & back end developers wanting to learn more about full stack serverless development.
+This workshop is intended for intermediate to advanced JavaScript developers wanting to learn more about full stack serverless development.
 
 While some level of React and GraphQL is helpful, because all front end code provided is copy and paste-able, this workshop requires zero previous knowledge about React or GraphQL.
 
@@ -97,9 +97,52 @@ $ yarn add @aws-cdk/aws-cognito @aws-cdk/aws-appsync @aws-cdk/aws-lambda @aws-cd
 
 ## Creating the authentication service with CDK
 
-When working with CDK, the code for the main stack lives in the __lib__ directory.
+When working with CDK, the code for the main stack lives in the __lib__ directory. When we created the project, the CLI created a file named __next-backend-stack.ts__ where our stack code is written.
 
+Open the file and let's first import the constructs and classes we'll need for our project:
 
+```typescript
+import * as cdk from '@aws-cdk/core';
+import * as cognito from '@aws-cdk/aws-cognito';
+import * as appsync from '@aws-cdk/aws-appsync';
+import * as ddb from '@aws-cdk/aws-dynamodb';
+import * as lambda from '@aws-cdk/aws-lambda';
+```
+
+Next, update the class with the following code to create the Amazon Cognito authentication service:
+
+```typescript
+export class NextBackendStack extends cdk.Stack {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const userPool = new cognito.UserPool(this, 'cdk-chat-app-user-pool', {
+      selfSignUpEnabled: true,
+      accountRecovery: cognito.AccountRecovery.PHONE_AND_EMAIL,
+      userVerification: {
+        emailStyle: cognito.VerificationEmailStyle.CODE
+      },
+      autoVerify: {
+        email: true
+      },
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: true
+        }
+      }
+    });
+
+    const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
+      userPool
+    });
+  }
+}
+```
+
+This code will create a Cognito User Pool that will enable the user to sign in with a username, email address, and password.
+
+A `userPoolClient` will also be created enabling client applications, in our case the Next.js app, to interact with the service.
 
 ## Adding the AWS AppSync GraphQL API with CDK
 
