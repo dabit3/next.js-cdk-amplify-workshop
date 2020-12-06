@@ -8,7 +8,7 @@ export class NextBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const userPool = new cognito.UserPool(this, 'cdk-chat-app-user-pool', {
+    const userPool = new cognito.UserPool(this, 'cdk-blog-user-pool', {
       selfSignUpEnabled: true,
       accountRecovery: cognito.AccountRecovery.PHONE_AND_EMAIL,
       userVerification: {
@@ -29,8 +29,8 @@ export class NextBackendStack extends cdk.Stack {
       userPool
     });
 
-    const api = new appsync.GraphqlApi(this, 'cdk-chat-app', {
-      name: "cdk-chat-app",
+    const api = new appsync.GraphqlApi(this, 'cdk-blog-app', {
+      name: "cdk-blog-app",
       logConfig: {
         fieldLogLevel: appsync.FieldLogLevel.ALL,
       },
@@ -98,6 +98,15 @@ export class NextBackendStack extends cdk.Stack {
         type: ddb.AttributeType.STRING,
       },
     });
+
+    postTable.addGlobalSecondaryIndex({
+      indexName: "postsByUsername",
+      partitionKey: {
+        name: "owner",
+        type: ddb.AttributeType.STRING,
+      }
+    })
+
     // enable the Lambda function to access the DynamoDB table (using IAM)
     postTable.grantFullAccess(postLambda)
     
