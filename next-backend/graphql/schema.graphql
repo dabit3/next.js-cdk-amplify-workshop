@@ -9,7 +9,6 @@ input PostInput {
   id: ID
   title: String!
   content: String!
-  owner: String
 }
 
 input UpdatePostInput {
@@ -23,7 +22,7 @@ type Query {
     @aws_api_key @aws_cognito_user_pools
   listPosts: [Post]
     @aws_api_key @aws_cognito_user_pools
-  postsByUsername(username: String!): [Post]
+  postsByUsername: [Post]
     @aws_cognito_user_pools
 }
 
@@ -40,4 +39,3 @@ type Subscription {
   onCreatePost: Post
     @aws_subscribe(mutations: ["createPost"])
 }
-

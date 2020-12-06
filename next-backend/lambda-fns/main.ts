@@ -22,19 +22,22 @@ type AppSyncEvent = {
 exports.handler = async (event:AppSyncEvent) => {
     switch (event.info.fieldName) {
         case "getPostById":
-            return await getPostById(event.arguments.postId);
-        case "createPost":
-            const { username } = event.identity 
-            return await createPost(event.arguments.post, username);
+          return await getPostById(event.arguments.postId);
+        case "createPost": {
+          const { username } = event.identity;
+          return await createPost(event.arguments.post, username);
+        }
         case "listPosts":
-            return await listPosts();
+          return await listPosts();
         case "deletePost":
-            return await deletePost(event.arguments.postId);
+          return await deletePost(event.arguments.postId);
         case "updatePost":
-            return await updatePost(event.arguments.post);
-        case "postsByUsername":
-            return await postsByUsername();
+          return await updatePost(event.arguments.post);
+        case "postsByUsername": {
+          const { username } = event.identity;
+          return await postsByUsername(username);
+        }
         default:
-            return null;
+          return null;
     }
 }
