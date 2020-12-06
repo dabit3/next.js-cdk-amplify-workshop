@@ -5,7 +5,7 @@ import Post from './Post'
 async function createPost(post: Post, username: string) {
     const params = {
         TableName: process.env.POST_TABLE,
-        Item: { ...post, username }
+        Item: { ...post, owner: username }
     }
     try {
         await docClient.put(params).promise();

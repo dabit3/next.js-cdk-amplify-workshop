@@ -1,4 +1,4 @@
-type Post {
+type Post @aws_api_key @aws_cognito_user_pools {
   id: ID!
   title: String!
   content: String!
