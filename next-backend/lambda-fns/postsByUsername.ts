@@ -1,13 +1,13 @@
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
 
 async function postsByUsername(username: string) {
   const params = {
     TableName: process.env.POST_TABLE,
     IndexName: 'postsByUsername',
-    KeyConditionExpression: '#owner = :typename',
-    ExpressionAttributeNames: { '#owner': `:${username}` },
+    KeyConditionExpression: '#owner = :username',
+    ExpressionAttributeNames: { '#owner': 'owner' },
     ExpressionAttributeValues: { ':username': username },
   }
 
@@ -20,4 +20,4 @@ async function postsByUsername(username: string) {
   }
 }
 
-export default postsByUsername;
+export default postsByUsername
