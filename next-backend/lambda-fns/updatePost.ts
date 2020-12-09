@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+import getPostById from './getPostById';
 
 type Params = {
   TableName: string | undefined,
@@ -10,9 +11,13 @@ type Params = {
   ReturnValues: string
 }
 
-async function updatePost(post: any) {
+async function updatePost(post: any, username: string) {
+  const original = await getPostById(post.id);
+  if (original.owner !== username) {
+    throw new Error('User not authorized to make this request');
+  }
   let params : Params = {
-    TableName: process.env.Post_TABLE,
+    TableName: process.env.POST_TABLE,
     Key: {
       id: post.id
     },

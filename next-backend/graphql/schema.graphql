@@ -18,7 +18,7 @@ input UpdatePostInput {
 }
 
 type Query {
-  getPostById(id: ID!): Post
+  getPostById(postId: ID!): Post
     @aws_api_key @aws_cognito_user_pools
   listPosts: [Post]
     @aws_api_key @aws_cognito_user_pools
@@ -29,7 +29,7 @@ type Query {
 type Mutation {
   createPost(post: PostInput!): Post
     @aws_cognito_user_pools
-  deletePost(id: ID!): ID
+  deletePost(postId: ID!): ID
     @aws_cognito_user_pools
   updatePost(post: UpdatePostInput!): Post
     @aws_cognito_user_pools

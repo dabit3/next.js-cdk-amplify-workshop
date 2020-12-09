@@ -29,10 +29,14 @@ exports.handler = async (event:AppSyncEvent) => {
         }
         case "listPosts":
           return await listPosts();
-        case "deletePost":
-          return await deletePost(event.arguments.postId);
-        case "updatePost":
-          return await updatePost(event.arguments.post);
+        case "deletePost": {
+          const { username } = event.identity;
+          return await deletePost(event.arguments.postId, username);
+        }
+        case "updatePost": {
+          const { username } = event.identity;
+          return await updatePost(event.arguments.post, username);
+        }
         case "postsByUsername": {
           const { username } = event.identity;
           return await postsByUsername(username);
