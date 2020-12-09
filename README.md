@@ -116,7 +116,7 @@ export class NextBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const userPool = new cognito.UserPool(this, 'cdk-chat-app-user-pool', {
+    const userPool = new cognito.UserPool(this, 'cdk-blog-user-pool', {
       selfSignUpEnabled: true,
       accountRecovery: cognito.AccountRecovery.PHONE_AND_EMAIL,
       userVerification: {
@@ -146,8 +146,37 @@ A `userPoolClient` will also be created enabling client applications, in our cas
 
 ## Adding the AWS AppSync GraphQL API with CDK
 
-To add a GraphQL API, we can use the following 
+To add a GraphQL API, we can use the following CDK code:
 
+```typescript
+const api = new appsync.GraphqlApi(this, 'cdk-blog-app', {
+  name: "cdk-blog-app",
+  logConfig: {
+    fieldLogLevel: appsync.FieldLogLevel.ALL,
+  },
+  schema: appsync.Schema.fromAsset('./graphql/schema.graphql'),
+  authorizationConfig: {
+    defaultAuthorization: {
+      authorizationType: appsync.AuthorizationType.API_KEY,
+      apiKeyConfig: {
+        expires: cdk.Expiration.after(cdk.Duration.days(365))
+      }
+    },
+    additionalAuthorizationModes: [{
+      authorizationType: appsync.AuthorizationType.USER_POOL,
+      userPoolConfig: {
+        userPool,
+      }
+    }]
+  },
+});
+```
+
+This code will create an AppSync GraphQL API with two types of authentication: API Key (public access) and Amazon Cognito User Pool (private, authenticated access).
+
+Our app will be using a combination of public and private access to achieve a common real world use case that combines the two types of access.
+
+For example, we want developers to be able to read out blog whether they are signed in or not, but if a user is signed up, we want to give them the correct access so that they can update or delete posts that they have created (but only their own posts).
 
 ### Testing the API
 
