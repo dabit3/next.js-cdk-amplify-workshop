@@ -532,6 +532,8 @@ async function listPosts() {
 export default listPosts
 ```
 
+The `listPosts` function scans the database and returns all of the results in an array.
+
 ### getPostById.ts
 
 ```typescript
@@ -643,6 +645,12 @@ async function updatePost(post: any, username: string) {
 
 export default updatePost
 ```
+
+There is a lot going on here, but I'll outline the two main things that may trip you up when looking at this code:
+
+1. There is a `ConditionExpression` that will only allow the update to succeeed if the `owner` fields match, meaning that the user who is trying to make the update needs to be the user who created them item, or this will fail. This is how we implement fine grained access control on this item.
+
+2. There is logic that will update the `UpdateExpression` dynamically based on what is passed in. This way, we can allow the user to update `N` number of items without having to take into consideration how many items are being updated.
 
 ### postsByUsername.ts
 
