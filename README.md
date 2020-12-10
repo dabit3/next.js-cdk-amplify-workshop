@@ -1089,7 +1089,7 @@ Next, run the app:
 $ npm run dev
 ```
 
-You should now be able to sign up and view your profile.
+You should now be able to sign in and view your profile, and also sign up new accounts.
 
 > The link to __/create-post__ will not yet work as we have not yet created this page.
 
