@@ -728,7 +728,9 @@ To make any authenticated requests (for mutations or querying by user ID), you w
 
 > Note that the first time you sign in, you will be prompted to change your password.
 
-In the AppSync dashboard, click on __Queries__ to open the GraphiQL editor. In the editor, create a new post with the following mutation:
+In the AppSync dashboard, click on __Queries__ to open the GraphiQL editor. In the editor, create a new post with the following mutation.
+
+>  Be sure to have the authentication mode set to __Amazon Cognito User Pools__ in order to execute the following operations: `createPost`, `deletePost`, `updatePost`, `postsByUsername`
 
 ```graphql
 mutation createPost {
