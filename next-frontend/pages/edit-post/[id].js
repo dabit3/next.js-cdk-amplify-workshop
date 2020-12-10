@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { API } from 'aws-amplify'
 import { useRouter } from 'next/router'
-import SimpleMDE from "react-simplemde-editor"
-import "easymde/dist/easymde.min.css"
+import SimpleMDE from 'react-simplemde-editor'
+import 'easymde/dist/easymde.min.css'
 import { updatePost } from '../../graphql'
 import { getPostById } from '../../graphql'
 

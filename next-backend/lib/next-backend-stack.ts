@@ -1,12 +1,12 @@
-import * as cdk from '@aws-cdk/core';
-import * as cognito from '@aws-cdk/aws-cognito';
-import * as appsync from '@aws-cdk/aws-appsync';
-import * as ddb from '@aws-cdk/aws-dynamodb';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from '@aws-cdk/core'
+import * as cognito from '@aws-cdk/aws-cognito'
+import * as appsync from '@aws-cdk/aws-appsync'
+import * as ddb from '@aws-cdk/aws-dynamodb'
+import * as lambda from '@aws-cdk/aws-lambda'
 
 export class NextBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+    super(scope, id, props)
 
     const userPool = new cognito.UserPool(this, 'cdk-blog-user-pool', {
       selfSignUpEnabled: true,
@@ -56,40 +56,40 @@ export class NextBackendStack extends cdk.Stack {
       handler: 'main.handler',
       code: lambda.Code.fromAsset('lambda-fns'),
       memorySize: 1024
-    });
+    })
     
     // Set the new Lambda function as a data source for the AppSync API
-    const lambdaDs = api.addLambdaDataSource('lambdaDatasource', postLambda);
+    const lambdaDs = api.addLambdaDataSource('lambdaDatasource', postLambda)
 
     lambdaDs.createResolver({
       typeName: "Query",
       fieldName: "getPostById"
-    });
+    })
     
     lambdaDs.createResolver({
       typeName: "Query",
       fieldName: "listPosts"
-    });
+    })
 
     lambdaDs.createResolver({
       typeName: "Query",
       fieldName: "postsByUsername"
-    });
+    })
     
     lambdaDs.createResolver({
       typeName: "Mutation",
       fieldName: "createPost"
-    });
+    })
     
     lambdaDs.createResolver({
       typeName: "Mutation",
       fieldName: "deletePost"
-    });
+    })
     
     lambdaDs.createResolver({
       typeName: "Mutation",
       fieldName: "updatePost"
-    });
+    })
 
     const postTable = new ddb.Table(this, 'CDKPostTable', {
       billingMode: ddb.BillingMode.PAY_PER_REQUEST,
@@ -97,7 +97,7 @@ export class NextBackendStack extends cdk.Stack {
         name: 'id',
         type: ddb.AttributeType.STRING,
       },
-    });
+    })
 
     postTable.addGlobalSecondaryIndex({
       indexName: "postsByUsername",
@@ -115,22 +115,22 @@ export class NextBackendStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "GraphQLAPIURL", {
       value: api.graphqlUrl
-    });
+    })
 
     new cdk.CfnOutput(this, 'AppSyncAPIKey', {
       value: api.apiKey || ''
-    });
+    })
+  
     new cdk.CfnOutput(this, 'ProjectRegion', {
       value: this.region
-    });
+    })
 
     new cdk.CfnOutput(this, "UserPoolId", {
       value: userPool.userPoolId
-    });
+    })
 
     new cdk.CfnOutput(this, "UserPoolClientId", {
       value: userPoolClient.userPoolClientId
-    });
-
+    })
   }
 }

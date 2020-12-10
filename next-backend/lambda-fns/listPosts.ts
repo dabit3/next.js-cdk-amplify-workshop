@@ -1,6 +1,6 @@
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
 
 async function listPosts() {
     const params = {
@@ -15,4 +15,4 @@ async function listPosts() {
     }
 }
 
-export default listPosts;
+export default listPosts

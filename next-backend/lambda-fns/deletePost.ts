@@ -1,18 +1,20 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
-import getPostById from './getPostById';
 
 async function deletePost(postId: string, username: string) {
-  const original = await getPostById(postId);
-  if (original.owner !== username) {
-    throw new Error('User not authorized to make this request');
-  }
   const params = {
     TableName: process.env.POST_TABLE,
     Key: {
       id: postId
+    },
+    ConditionExpression: "#owner = :owner",
+    ExpressionAttributeNames: {
+      "#owner": "owner"
+    },
+    ExpressionAttributeValues: {
+      ':owner' : username
     }
-  }
+};
   try {
     await docClient.delete(params).promise()
     return postId

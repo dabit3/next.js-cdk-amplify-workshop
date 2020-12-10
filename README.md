@@ -102,6 +102,7 @@ When working with CDK, the code for the main stack lives in the __lib__ director
 Open the file and let's first import the constructs and classes we'll need for our project:
 
 ```typescript
+// lib/next-backend-stack.ts
 import * as cdk from '@aws-cdk/core';
 import * as cognito from '@aws-cdk/aws-cognito';
 import * as appsync from '@aws-cdk/aws-appsync';
@@ -112,6 +113,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 Next, update the class with the following code to create the Amazon Cognito authentication service:
 
 ```typescript
+// lib/next-backend-stack.ts
 export class NextBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -146,9 +148,12 @@ A `userPoolClient` will also be created enabling client applications, in our cas
 
 ## Adding the AWS AppSync GraphQL API with CDK
 
-To add a GraphQL API, we can use the following CDK code:
+Next, we'll need to create the AppSync GraphQL API.
+
+To create the API, add the following code below the User Pool definition in __lib/next-backend-stack.ts__.
 
 ```typescript
+// lib/next-backend-stack.ts
 const api = new appsync.GraphqlApi(this, 'cdk-blog-app', {
   name: "cdk-blog-app",
   logConfig: {
@@ -178,7 +183,514 @@ Our app will be using a combination of public and private access to achieve a co
 
 For example, we want developers to be able to read out blog whether they are signed in or not, but if a user is signed up, we want to give them the correct access so that they can update or delete posts that they have created (but only their own posts).
 
-### Testing the API
+## Adding the GraphQL schema
+
+In the code where we defined the GraphQL API, we set the GraphQL schema directory as __./graphql/schema.graphql__, but we have not yet created the schema, so let's do that now.
+
+In the root of the __next-backend__ folder, create a folder called __graphql__ and a file in that folder named __schema.graphql__. In that file, add the following code:
+
+```graphql
+# graphql/schema.graphql
+type Post @aws_api_key @aws_cognito_user_pools {
+  id: ID!
+  title: String!
+  content: String!
+  owner: String!
+}
+
+input PostInput {
+  id: ID
+  title: String!
+  content: String!
+}
+
+input UpdatePostInput {
+  id: ID!
+  title: String
+  content: String
+}
+
+type Query {
+  getPostById(postId: ID!): Post
+    @aws_api_key @aws_cognito_user_pools
+  listPosts: [Post]
+    @aws_api_key @aws_cognito_user_pools
+  postsByUsername: [Post]
+    @aws_cognito_user_pools
+}
+
+type Mutation {
+  createPost(post: PostInput!): Post
+    @aws_cognito_user_pools
+  deletePost(postId: ID!): ID
+    @aws_cognito_user_pools
+  updatePost(post: UpdatePostInput!): Post
+    @aws_cognito_user_pools
+}
+
+type Subscription {
+  onCreatePost: Post
+    @aws_subscribe(mutations: ["createPost"])
+}
+```
+
+This schema defines the `Post` type that we'll be needing along with all of the input types and operations for creating, updating, and reading `Post`s.
+
+There are also authorization rules set in place by using `@aws_api_key` and `@aws_cognito_user_pools`.
+
+__@aws_api_key__ enables public access.
+
+__@aws_cognito_user_pools__ configures private access for signed in users.
+
+You will notice that some of the queries enable both public and private access, while the mutations only allow private access. That is because we only want to enable signed in users to be able to update `Post`s, and we will even be implementing businness logic that only allows users to update `Post`s if they are the owner / creator of the `Post`.
+
+## Adding and configuring a Lambda function data source
+
+Next, we'll create a Lambda function. The Lambda function will be the main datasource for the API, meaning we will map all of the GraphQL operations (mutations and subscriptions) into the function.
+
+The function will then call the DynamoDB database to execute of the operations we will be needing for creating, reading, updating, and deleting items in the database.
+
+To create the Lambda function, add the following code below the API definition in __lib/next-backend-stack.ts__.
+
+```typescript
+// lib/next-backend-stack.ts
+
+// Create the function
+const postLambda = new lambda.Function(this, 'AppSyncPostHandler', {
+  runtime: lambda.Runtime.NODEJS_12_X,
+  handler: 'main.handler',
+  code: lambda.Code.fromAsset('lambda-fns'),
+  memorySize: 1024
+})
+
+// Set the new Lambda function as a data source for the AppSync API
+const lambdaDs = api.addLambdaDataSource('lambdaDatasource', postLambda)
+```
+
+## Adding the GraphQL resolvers
+
+Now we will create the GraphQL resolver definitions that will map the requests coming into the API into the Lambda function.
+
+To create the resolvers, add the following code below the Lambda function definition in __lib/next-backend-stack.ts__.
+
+```typescript
+// lib/next-backend-stack.ts
+lambdaDs.createResolver({
+  typeName: "Query",
+  fieldName: "getPostById"
+})
+
+lambdaDs.createResolver({
+  typeName: "Query",
+  fieldName: "listPosts"
+})
+
+lambdaDs.createResolver({
+  typeName: "Query",
+  fieldName: "postsByUsername"
+})
+
+lambdaDs.createResolver({
+  typeName: "Mutation",
+  fieldName: "createPost"
+})
+
+lambdaDs.createResolver({
+  typeName: "Mutation",
+  fieldName: "deletePost"
+})
+
+lambdaDs.createResolver({
+  typeName: "Mutation",
+  fieldName: "updatePost"
+})
+```
+
+## Creating the database
+
+Next, we'll create the DynamoDB table that our API will be using to store data.
+
+To create the database, add the following code below the GraphQL resolver definitions in __lib/next-backend-stack.ts__.
+
+```typescript
+// lib/next-backend-stack.ts
+
+// Create the DynamoDB table
+const postTable = new ddb.Table(this, 'CDKPostTable', {
+  billingMode: ddb.BillingMode.PAY_PER_REQUEST,
+  partitionKey: {
+    name: 'id',
+    type: ddb.AttributeType.STRING,
+  },
+})
+
+// Add a global secondary index to enable another data access pattern
+postTable.addGlobalSecondaryIndex({
+  indexName: "postsByUsername",
+  partitionKey: {
+    name: "owner",
+    type: ddb.AttributeType.STRING,
+  }
+})
+
+// Enable the Lambda function to access the DynamoDB table (using IAM)
+postTable.grantFullAccess(postLambda)
+
+// Create an environment variable that we will use in the function code
+postLambda.addEnvironment('POST_TABLE', postTable.tableName);
+```
+
+This code will create a DynamoDB table and add a Global Secondary Index to enable us the query the table by the `username` field.
+
+We also enable permissions for the Lambda function we created earlier to be able to interact with the table as well as a new environment variable that we will be using to reference the table from within the function.
+
+## Printing out resource values for client-side configuration
+
+If we’d like to consume the API from a client application (like we will be doing in our Next.js app), we’ll need the values of the API key, GraphQL URL, Cognito User Pool ID, Cognito User Pool Client ID, and project region to configure our app.
+
+We _could_ go inside the AWS console for each service and find these values, but CDK enables us to print these out to our terminal upon deployment as well as map these values to an output file that we can later import in our web or mobile application and use with AWS Amplify.
+
+To create these output values, add the following code below the DynamoDB table definition in __lib/next-backend-stack.ts__.
+
+```typescript
+// lib/next-backend-stack.ts
+new cdk.CfnOutput(this, "GraphQLAPIURL", {
+  value: api.graphqlUrl
+})
+
+new cdk.CfnOutput(this, 'AppSyncAPIKey', {
+  value: api.apiKey || ''
+})
+
+new cdk.CfnOutput(this, 'ProjectRegion', {
+  value: this.region
+})
+
+new cdk.CfnOutput(this, "UserPoolId", {
+  value: userPool.userPoolId
+})
+
+new cdk.CfnOutput(this, "UserPoolClientId", {
+  value: userPoolClient.userPoolClientId
+})
+```
+
+## Adding the Lambda function code
+
+The last thing we need to do is write the code for the Lambda function. The Lambda function will map the GraphQL operations coming in via the event into a call to the DynamoDB database. We will have functions for all of the operations defined in the GraphQL schema. The Lambda handler will read the GraphQL operation from the event object and call the appropriate function.
+
+Create a folder named lambda-fns in the root directory. Next, change into this directory and initialize a new package.json file and install the `uuid` library:
+
+```sh
+cd lambda-fns
+npm init --y
+npm install uuid
+```
+
+In the __lambda-fns__ folder, create the following files:
+
+- Post.ts
+- main.ts
+- createPost.ts
+- listPosts.ts
+- getPostById.ts
+- deletePost.ts
+- updatePost.ts
+- postsByUsername.ts
+
+### Post.ts
+
+```typescript
+// lambda-fns/Post.ts
+type Post = {
+  id: string,
+  title: string,
+  content: string,
+  owner: string
+}
+
+export default Post
+```
+
+The Post type should match the GraphQL Post type and will be used in a couple of our files.
+
+### main.ts
+
+```typescript
+// lambda-fns/main.ts
+import createPost from './createPost'
+import deletePost from './deletePost'
+import getPostById from './getPostById'
+import listPosts from './listPosts'
+import updatePost from './updatePost'
+import postsByUsername from './postsByUsername'
+import Post from './Post'
+
+type AppSyncEvent = {
+   info: {
+     fieldName: string
+  },
+   arguments: {
+     postId: string,
+     post: Post
+  },
+  identity: {
+    username: string
+  }
+}
+
+exports.handler = async (event:AppSyncEvent) => {
+    switch (event.info.fieldName) {
+        case "getPostById":
+          return await getPostById(event.arguments.postId)
+        case "createPost": {
+          const { username } = event.identity
+          return await createPost(event.arguments.post, username)
+        }
+        case "listPosts":
+          return await listPosts();
+        case "deletePost": {
+          const { username } = event.identity
+          return await deletePost(event.arguments.postId, username)
+        }
+        case "updatePost": {
+          const { username } = event.identity
+          return await updatePost(event.arguments.post, username)
+        }
+        case "postsByUsername": {
+          const { username } = event.identity
+          return await postsByUsername(username)
+        }
+        default:
+          return null
+    }
+}
+```
+
+The handler function will use the GraphQL operation available in the event.info.fieldname to call the various functions that will interact with the DynamoDB database.
+
+The function will also be passed an `identity` object if the request has been authenticated by AppSync. If the event is coming from an authenticated request, then the `identity` object will be null.
+
+### createPost.ts
+
+```typescript
+// lambda-fns/createPost.ts
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
+import Post from './Post'
+const { v4: uuid } = require('uuid')
+
+async function createPost(post: Post, username: string) {
+  if (!post.id) {
+    post.id = uuid()
+  }
+  const postData = { ...post, owner: username }
+  const params = {
+    TableName: process.env.POST_TABLE,
+    Item: postData
+  }
+  try {
+    await docClient.put(params).promise()
+    return postData
+  } catch (err) {
+    console.log('DynamoDB error: ', err)
+    return null
+  }
+}
+
+export default createPost
+```
+
+### listPosts.ts
+
+```typescript
+// lambda-fns/listPosts.ts
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
+
+async function listPosts() {
+    const params = {
+        TableName: process.env.POST_TABLE,
+    }
+    try {
+        const data = await docClient.scan(params).promise()
+        return data.Items
+    } catch (err) {
+        console.log('DynamoDB error: ', err)
+        return null
+    }
+}
+
+export default listPosts
+```
+
+### getPostById.ts
+
+```typescript
+// lambda-fns/getPostById.ts
+const AWS = require('aws-sdk');
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+async function getPostById(postId: string) {
+    const params = {
+        TableName: process.env.POST_TABLE,
+        Key: { id: postId }
+    }
+    try {
+        const { Item } = await docClient.get(params).promise()
+        return Item
+    } catch (err) {
+        console.log('DynamoDB error: ', err)
+    }
+}
+
+export default getPostById
+```
+
+### deletePost.ts
+
+```typescript
+// lambda-fns/deletePost.ts
+const AWS = require('aws-sdk');
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+async function deletePost(postId: string, username: string) {
+  const params = {
+    TableName: process.env.POST_TABLE,
+    Key: {
+      id: postId
+    },
+    ConditionExpression: "#owner = :owner",
+    ExpressionAttributeNames: {
+      "#owner": "owner"
+    },
+    ExpressionAttributeValues: {
+      ':owner' : username
+    }
+};
+  try {
+    await docClient.delete(params).promise()
+    return postId
+  } catch (err) {
+    console.log('DynamoDB error: ', err)
+    return null
+  }
+}
+
+export default deletePost;
+```
+
+### updatePost.ts
+
+```typescript
+// lambda-fns/updatePost.ts
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
+
+type Params = {
+  TableName: string | undefined,
+  Key: string | {},
+  ExpressionAttributeValues: any,
+  ExpressionAttributeNames: any,
+  ConditionExpression: string,
+  UpdateExpression: string,
+  ReturnValues: string,
+}
+
+async function updatePost(post: any, username: string) {
+  let params : Params = {
+    TableName: process.env.POST_TABLE,
+    Key: {
+      id: post.id
+    },
+    UpdateExpression: "",
+    ConditionExpression: "#owner = :owner",
+    ExpressionAttributeNames: {
+      "#owner": "owner"
+    },
+    ExpressionAttributeValues: {
+      ':owner' : username
+    },
+    ReturnValues: "UPDATED_NEW"
+  }
+  let prefix = "set ";
+  let attributes = Object.keys(post);
+  for (let i=0; i<attributes.length; i++) {
+    let attribute = attributes[i];
+    if (attribute !== "id") {
+      params["UpdateExpression"] += prefix + "#" + attribute + " = :" + attribute;
+      params["ExpressionAttributeValues"][":" + attribute] = post[attribute];
+      params["ExpressionAttributeNames"]["#" + attribute] = attribute;
+      prefix = ", ";
+    }
+  }
+  try {
+    await docClient.update(params).promise()
+    return post
+  } catch (err) {
+    console.log('DynamoDB error: ', err)
+    return null
+  }
+}
+
+export default updatePost
+```
+
+### postsByUsername.ts
+
+```typescript
+// lambda-fns/postsByUsername.ts
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
+
+async function postsByUsername(username: string) {
+  const params = {
+    TableName: process.env.POST_TABLE,
+    IndexName: 'postsByUsername',
+    KeyConditionExpression: '#owner = :username',
+    ExpressionAttributeNames: { '#owner': 'owner' },
+    ExpressionAttributeValues: { ':username': username },
+  }
+
+  try {
+      const data = await docClient.query(params).promise()
+      return data.Items
+  } catch (err) {
+      console.log('DynamoDB error: ', err)
+      return null
+  }
+}
+
+export default postsByUsername
+```
+
+### Deploying and testing
+
+To see what will be deployed before making changes at any time, you can build the project and run the CDK `diff` command:
+
+```sh
+npm run build && cdk diff
+```
+
+At this point we are ready to deploy the back end. To do so, run the following command from your terminal in the root directory of your CDK project:
+
+```sh
+npm run build && cdk deploy -O cdk-exports.json
+```
+
+## Creating a user
+
+Since this is an authenticated API, we need to create a user in order to test out the API.
+
+To create a user, open the [Amazon Cognito Dashboard](https://console.aws.amazon.com/cognito) and click on __Manage User Pools__.
+
+Next, click on the User Pool that starts with __cdkbloguserpool__. __Be sure that you are in the same region in the AWS Console that you created your project in, or else the User Pool will not show up__
+
+In this dashboard, click __Users and groups__ to create a new user. Note that you do not need to input a phone number to create a new user:
+
+![Create a new user](images/cognito_create_user.png)
+
+###
 
 To test it out we can use the GraphiQL editor in the AppSync dashboard. To open the AppSync dashboard, go to .
 
