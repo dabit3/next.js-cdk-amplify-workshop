@@ -752,12 +752,10 @@ Then, query for the posts:
 ```graphql
 query listPosts {
   listPosts {
-    items {
-      id
-      title
-      content
-      owner
-    }
+    id
+    title
+    content
+    owner
   }
 }
 ```
