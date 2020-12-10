@@ -978,26 +978,6 @@ You should be able to view the list of posts. You will not yet be able to click 
 
 ## Adding authentication
 
-Next, let's add some authentication.
-
-To add the authentication service, run the following command using the Amplify CLI:
-
-```sh
-$ amplify add auth
-
-? Do you want to use default authentication and security configuration? Default configuration 
-? How do you want users to be able to sign in when using your Cognito User Pool? Username
-? Do you want to configure advanced settings? No, I am done. 
-```
-
-To deploy the authentication service, you can run the push command:
-
-```sh
-$ amplify push
-
-? Are you sure you want to continue? Yes
-```
-
 Next, let's add a profile screen and login flow to the app.
 
 To do so, create a new file called __profile.js__ in the __pages__ directory. Here, add the following code:
