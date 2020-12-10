@@ -42,20 +42,24 @@ While some level of React and GraphQL is helpful, because all front end code pro
 - Hosting
 - Deleting the resources
 
-## Getting Started - Creating the Next.js Application
+## Getting Started
 
-To get started, we first need to create a new Next.js project.
+To get started, we first need to create a base folder for the app. Create a folder called __cdk-next__ and change into it.
+
+Next, create the Next.js app inside the __cdk-next__ directory:
 
 ```bash
-$ npx create-next-app cdk-next-blog
+$ npx create-next-app next-frontend
 ```
 
-Now change into the new app directory & install AWS Amplify, & AWS Amplify UI React:
+Now change into the new app directory & install these dependencies:
 
 ```bash
-$ cd cdk-next-blog
+$ cd next-frontend
 $ npm install aws-amplify @aws-amplify/ui-react react-simplemde-editor react-markdown uuid
 ```
+
+Next, change back into the root directory to begin building the back end infrastructure.
 
 ## Installing the CLI & Initializing a new CDK Project
 
@@ -187,7 +191,7 @@ For example, we want developers to be able to read out blog whether they are sig
 
 In the code where we defined the GraphQL API, we set the GraphQL schema directory as __./graphql/schema.graphql__, but we have not yet created the schema, so let's do that now.
 
-In the root of the __next-backend__ folder, create a folder called __graphql__ and a file in that folder named __schema.graphql__. In that file, add the following code:
+In the root of the CDK project, create a folder called __graphql__ and a file in that folder named __schema.graphql__. In that file, add the following code:
 
 ```graphql
 # graphql/schema.graphql
@@ -379,7 +383,7 @@ new cdk.CfnOutput(this, "UserPoolClientId", {
 
 The last thing we need to do is write the code for the Lambda function. The Lambda function will map the GraphQL operations coming in via the event into a call to the DynamoDB database. We will have functions for all of the operations defined in the GraphQL schema. The Lambda handler will read the GraphQL operation from the event object and call the appropriate function.
 
-Create a folder named lambda-fns in the root directory. Next, change into this directory and initialize a new package.json file and install the `uuid` library:
+Create a folder named lambda-fns in the root directory of the CDK project. Next, change into this directory and initialize a new package.json file and install the `uuid` library:
 
 ```sh
 cd lambda-fns
@@ -802,7 +806,7 @@ export default config
 
 The next thing we need to do is to configure our Next.js app to be aware of our AWS configuration. We can do this by referencing the new `aws-exports.js` file we just created.
 
-Create a new file called __configureAmplify.js__ in the root of the project and add the following code:
+Create a new file called __configureAmplify.js__ in the root of the Next.js app and add the following code:
 
 ```js
 import Amplify from 'aws-amplify'
@@ -1555,7 +1559,7 @@ npm run build && npm start
 
 ## Deployment with Serverless Framework
 
-To deploy to AWS, create a new file at the root of the app called __serverless.yml__. In this file, add the following configuration:
+To deploy to AWS, create a new file at the root of the Next.js client app called __serverless.yml__. In this file, add the following configuration:
 
 ```yaml
 nextamplified:
