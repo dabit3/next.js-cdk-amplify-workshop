@@ -63,7 +63,7 @@ Next, change back into the root directory to begin building the back end infrast
 
 ## Installing the CLI & Initializing a new CDK Project
 
-### Installing the CLI
+### Installing the CDK CLI
 
 Next, we'll install the CDK CLI:
 
@@ -107,11 +107,11 @@ Open the file and let's first import the constructs and classes we'll need for o
 
 ```typescript
 // lib/next-backend-stack.ts
-import * as cdk from '@aws-cdk/core';
-import * as cognito from '@aws-cdk/aws-cognito';
-import * as appsync from '@aws-cdk/aws-appsync';
-import * as ddb from '@aws-cdk/aws-dynamodb';
-import * as lambda from '@aws-cdk/aws-lambda';
+import * as cdk from '@aws-cdk/core'
+import * as cognito from '@aws-cdk/aws-cognito'
+import * as appsync from '@aws-cdk/aws-appsync'
+import * as ddb from '@aws-cdk/aws-dynamodb'
+import * as lambda from '@aws-cdk/aws-lambda'
 ```
 
 Next, update the class with the following code to create the Amazon Cognito authentication service:
@@ -120,7 +120,7 @@ Next, update the class with the following code to create the Amazon Cognito auth
 // lib/next-backend-stack.ts
 export class NextBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+    super(scope, id, props)
 
     const userPool = new cognito.UserPool(this, 'cdk-blog-user-pool', {
       selfSignUpEnabled: true,
@@ -137,11 +137,11 @@ export class NextBackendStack extends cdk.Stack {
           mutable: true
         }
       }
-    });
+    })
 
     const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
       userPool
-    });
+    })
   }
 }
 ```
@@ -178,7 +178,7 @@ const api = new appsync.GraphqlApi(this, 'cdk-blog-app', {
       }
     }]
   },
-});
+})
 ```
 
 This code will create an AppSync GraphQL API with two types of authentication: API Key (public access) and Amazon Cognito User Pool (private, authenticated access).
@@ -341,7 +341,7 @@ postTable.addGlobalSecondaryIndex({
 postTable.grantFullAccess(postLambda)
 
 // Create an environment variable that we will use in the function code
-postLambda.addEnvironment('POST_TABLE', postTable.tableName);
+postLambda.addEnvironment('POST_TABLE', postTable.tableName)
 ```
 
 This code will create a DynamoDB table and add a Global Secondary Index to enable us the query the table by the `username` field.
@@ -452,7 +452,7 @@ exports.handler = async (event:AppSyncEvent) => {
           return await createPost(event.arguments.post, username)
         }
         case "listPosts":
-          return await listPosts();
+          return await listPosts()
         case "deletePost": {
           const { username } = event.identity
           return await deletePost(event.arguments.postId, username)
@@ -532,8 +532,8 @@ export default listPosts
 
 ```typescript
 // lambda-fns/getPostById.ts
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
 
 async function getPostById(postId: string) {
     const params = {
@@ -555,8 +555,8 @@ export default getPostById
 
 ```typescript
 // lambda-fns/deletePost.ts
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
 
 async function deletePost(postId: string, username: string) {
   const params = {
@@ -571,7 +571,7 @@ async function deletePost(postId: string, username: string) {
     ExpressionAttributeValues: {
       ':owner' : username
     }
-};
+}
   try {
     await docClient.delete(params).promise()
     return postId
@@ -581,7 +581,7 @@ async function deletePost(postId: string, username: string) {
   }
 }
 
-export default deletePost;
+export default deletePost
 ```
 
 ### updatePost.ts
@@ -617,15 +617,15 @@ async function updatePost(post: any, username: string) {
     },
     ReturnValues: "UPDATED_NEW"
   }
-  let prefix = "set ";
-  let attributes = Object.keys(post);
+  let prefix = "set "
+  let attributes = Object.keys(post)
   for (let i=0; i<attributes.length; i++) {
-    let attribute = attributes[i];
+    let attribute = attributes[i]
     if (attribute !== "id") {
-      params["UpdateExpression"] += prefix + "#" + attribute + " = :" + attribute;
-      params["ExpressionAttributeValues"][":" + attribute] = post[attribute];
-      params["ExpressionAttributeNames"]["#" + attribute] = attribute;
-      prefix = ", ";
+      params["UpdateExpression"] += prefix + "#" + attribute + " = :" + attribute
+      params["ExpressionAttributeValues"][":" + attribute] = post[attribute]
+      params["ExpressionAttributeNames"]["#" + attribute] = attribute
+      prefix = ", "
     }
   }
   try {
@@ -679,7 +679,7 @@ npm run build && cdk diff
 At this point we are ready to deploy the back end. To do so, run the following command from your terminal in the root directory of your CDK project:
 
 ```sh
-npm run build && cdk deploy -O cdk-exports.json
+npm run build && cdk deploy -O ../next-frontend/cdk-exports.json
 ```
 
 ### Creating a user
@@ -690,7 +690,9 @@ To create a user, open the [Amazon Cognito Dashboard](https://console.aws.amazon
 
 Next, click on the User Pool that starts with __cdkbloguserpool__. _Be sure that you are in the same region in the AWS Console that you created your project in, or else the User Pool will not show up_
 
-In this dashboard, click __Users and groups__ to create a new user. _Note that you do not need to input a phone number to create a new user:_
+In this dashboard, click __Users and groups__ to create a new user.
+
+> Note that you do not need to input a phone number to create a new user.
 
 ![Create a new user](images/cognito_create_user.png)
 
@@ -710,7 +712,7 @@ To make any authenticated requests (for mutations or querying by user ID), you w
 
 ![AppSync Authentication](images/appsynccognito.png)
 
-_Note that the first time you sign in, you will be prompted to change your password_.
+> Note that the first time you sign in, you will be prompted to change your password.
 
 In the AppSync dashboard, click on __Queries__ to open the GraphiQL editor. In the editor, create a new post with the following mutation:
 
@@ -782,9 +784,9 @@ mutation deletePost {
 
 ### Configuring the Next app
 
-Now, our API is created & we can test it out in our app!
+Now, our API is created & we can use it in our app!
 
-The first thing we need to do is create a configuration file that we can consume in the Next.js app containing the resources we just created using CDK.
+The first thing we need to do is create a configuration file that we can consume in the Next.js app containing the AWS resources we just created using CDK.
 
 The CDK CLI created a new file in the root of our Next.js app called `cdk-exports.json`, located at `next-frontent/cdk-exports.json`. What we need to do next is create a file called `aws-exports.js` that will take these values and make them consumable by the Amplify client library:
 
@@ -822,9 +824,83 @@ import '../configureAmplify'
 
 Now, our app is ready to start using our AWS services.
 
+### Defining the client-side GraphQL operations
+
+Next. create a file in the __next-frontend__ folder named __graphql.js__.
+
+In this file, add the GraphQL operation definitions that we'll be needing for the client application:
+
+```js
+export const getPostById = /* GraphQL */ `
+  query getPostById($postId: ID!) {
+    getPostById(postId: $postId) {
+      id
+      title
+      content
+      owner
+    }
+  }
+`
+
+export const listPosts = /* GraphQL */ `
+  query ListPosts  {
+    listPosts {
+      id
+      title
+      content
+      owner
+    }
+  }
+`
+
+export const postsByUsername = /* GraphQL */ `
+  query PostsByUsername {
+    postsByUsername {
+      id
+      title
+      content
+      owner
+    }
+  }
+`
+
+export const createPost = /* GraphQL */ `
+  mutation CreatePost(
+    $post: PostInput!
+  ) {
+    createPost(post: $post) {
+      id
+      title
+      content
+      owner
+    }
+  }
+`
+
+export const updatePost = /* GraphQL */ `
+  mutation UpdatePost(
+    $post: UpdatePostInput!
+  ) {
+    updatePost(post: $post) {
+      id
+      title
+      content
+    }
+  }
+`
+
+export const deletePost = /* GraphQL */ `
+  mutation DeletePost(
+    $postId: ID!
+  ) {
+    deletePost(postId: $postId)
+  }
+`
+```
+
 ### Interacting with the GraphQL API from the Next.js application - Querying for data
 
-Now that the GraphQL API is running we can begin interacting with it. The first thing we'll do is perform a query to fetch data from our API.
+Now that everthing is set up and the API has been deployed, we can begin interacting with it. The first thing we'll do is perform a query to fetch data from our API.
 
 To do so, we need to define the query, execute the query, store the data in our state, then list the items in our UI.
 
@@ -841,7 +917,7 @@ Open __pages/index.js__ and add the following code:
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { API } from 'aws-amplify'
-import { listPosts } from '../graphql/queries'
+import { listPosts } from '../graphql'
 
 export default function Home() {
   const [posts, setPosts] = useState([])
@@ -852,7 +928,8 @@ export default function Home() {
     const postData = await API.graphql({
       query: listPosts
     })
-    setPosts(postData.data.listPosts.items)
+    console.log('postData: ', postData)
+    setPosts(postData.data.listPosts)
   }
   return (
     <div>
@@ -862,6 +939,7 @@ export default function Home() {
         <Link key={index} href={`/posts/${post.id}`}>
           <div style={linkStyle}>
             <h2>{post.title}</h2>
+            <p style={authorStyle}>Author: {post.owner}</p>
           </div>
         </Link>)
         )
@@ -870,11 +948,8 @@ export default function Home() {
   )
 }
 
-const linkStyle = {
-  cursor: 'pointer',
-  borderBottom: '1px solid rgba(0, 0, 0 ,.1)',
-  padding: '20px 0px'
-}
+const linkStyle = { cursor: 'pointer', borderBottom: '1px solid rgba(0, 0, 0 ,.1)', padding: '20px 0px' }
+const authorStyle = { color: 'rgba(0, 0, 0, .55)', fontWeight: '600' }
 ```
 
 Next, start the app:
@@ -970,9 +1045,9 @@ Next, open __pages/\_app.js__ to add some navigation and styling to be able to n
 
 ```js
 import '../styles/globals.css'
+import styles from '../styles/Home.module.css'
 import '../configureAmplify'
 import Link from 'next/link'
-import styles from '../styles/Home.module.css'
 
 function MyApp({ Component, pageProps }) {
   return (
@@ -1022,58 +1097,11 @@ You should now be able to sign up and view your profile.
 
 > The link to __/create-post__ will not yet work as we have not yet created this page.
 
-## Adding authorization
+## Making an authorized request - Creating posts
 
-Next, update the API to enable another authorization type to enable both public and private API access.
+To authenticated API calls from the Next.js client, the authorization type needs to be specified in the query or mutation.
 
-```sh
-$ amplify update api
-
-? Please select from one of the below mentioned services: GraphQL   
-? Select from the options below: Update auth settings
-? Choose the default authorization type for the API: API key
-? Enter a description for the API key: public
-? After how many days from now the API key should expire (1-365): 365 <or your preferred expiration>
-? Configure additional auth types? Y
-? Choose the additional authorization types you want to configure for the API: Amazon Cognito User Pool
-```
-
-![Updating the API](images/update-api.png)
-
-Next, let's update the GraphQL schema with the following changes:
-
-1. A new field (`username`) to identify the author of a post.
-2. An `@key` directive for enabling a new data access pattern to query posts by username
-
-Open __amplify/backend/api/NextBlog/schema.graphql__ and update it with the following:
-
-```graphql
-type Post @model
-  @key(name: "postsByUsername", fields: ["username"], queryField: "postsByUsername")
-  @auth(rules: [
-    { allow: owner, ownerField: "username" },
-    { allow: public, operations: [read] }
-  ]) {
-  id: ID!
-  title: String!
-  content: String!
-  username: String
-}
-```
-
-Next, deploy the updates:
-
-```sh
-$ amplify push --y
-```
-
-Now, you will have two types of API access:
-
-1. Private (Cognito) - to create a post, a user must be signed in. Once they have created a post, they can update and delete their own post. They can also read all posts.
-2. Public (API key) - Any user, regardless if they are signed in, can query for posts or a single post.
-Using this combination, you can easily query for just a single user's posts or for all posts.
-
-To make this secondary private API call from the client, the authorization type needs to be specified in the query or mutation:
+Here is an example of how this looks:
 
 ```js
 const postData = await API.graphql({
@@ -1085,11 +1113,14 @@ const postData = await API.graphql({
 })
 ```
 
+Let's create the page that will allow users to create a new post.
+
 ## Adding the Create Post form and page
 
-Next, create a new page at __pages/create-post.js__ and add the following code:
+Create a new page at __pages/create-post.js__ and add the following code:
 
 ```js
+// pages/create-post.js
 import { withAuthenticator } from '@aws-amplify/ui-react'
 import { useState } from 'react'
 import { API } from 'aws-amplify'
@@ -1097,7 +1128,7 @@ import { v4 as uuid } from 'uuid'
 import { useRouter } from 'next/router'
 import SimpleMDE from "react-simplemde-editor"
 import "easymde/dist/easymde.min.css"
-import { createPost } from '../graphql/mutations'
+import { createPost } from '../graphql'
 
 const initialState = { title: '', content: '' }
 
@@ -1115,7 +1146,7 @@ function CreatePost() {
 
     await API.graphql({
       query: createPost,
-      variables: { input: post },
+      variables: { post },
       authMode: "AMAZON_COGNITO_USER_POOLS"
     })
     router.push(`/posts/${id}`)
@@ -1148,13 +1179,15 @@ This will render a form and a markdown editor, allowing users to create new post
 Next, create a new folder in the __pages__ directory called __posts__ and a file called __[id].js__ within that folder. In __pages/posts/[id].js__, add the following code:
 
 ```js
+// pages/posts/[id].js
 import { API } from 'aws-amplify'
 import { useRouter } from 'next/router'
-import ReactMarkdown from 'react-markdown'
 import '../../configureAmplify'
-import { listPosts, getPost } from '../../graphql/queries'
+import ReactMarkdown from 'react-markdown'
+import { listPosts, getPostById } from '../../graphql'
 
 export default function Post({ post }) {
+  console.log('post: ', post)
   const router = useRouter()
   if (router.isFallback) {
     return <div>Loading...</div>
@@ -1165,30 +1198,28 @@ export default function Post({ post }) {
       <div style={markdownStyle}>
         <ReactMarkdown children={post.content} />
       </div>
-      <p>Created by: {post.username}</p>
+      <p>Created by: {post.owner}</p>
     </div>
   )
 }
 
 export async function getStaticPaths() {
-  const postData = await API.graphql({
-    query: listPosts
-  })
-  const paths = postData.data.listPosts.items.map(post => ({ params: { id: post.id }}))
+  const postData = await API.graphql({ query: listPosts })
+  const paths = postData.data.listPosts.map(post => ({ params: { id: post.id }}))
   return {
     paths,
-    fallback: true
+    fallback: true,
   }
 }
 
 export async function getStaticProps ({ params }) {
   const { id } = params
   const postData = await API.graphql({
-    query: getPost, variables: { id }
+    query: getPostById, variables: { postId: id }
   })
   return {
     props: {
-      post: postData.data.getPost
+      post: postData.data.getPostById
     }
   }
 }
@@ -1202,62 +1233,7 @@ We also use the `fallback` flag to enable fallback routes for dynamic SSG page g
 
 `getStaticProps` is used to enable the Post data to be passed into the page as props at build time.
 
-Finally, update __pages/index.js__ to add the author field and author styles:
-
-```js
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { API } from 'aws-amplify'
-import { listPosts } from '../graphql/queries'
-
-export default function Home() {
-  const [posts, setPosts] = useState([])
-  useEffect(() => {
-    fetchPosts()
-  }, [])
-  async function fetchPosts() {
-    const postData = await API.graphql({
-      query: listPosts
-    })
-    setPosts(postData.data.listPosts.items)
-  }
-  return (
-    <div>
-      <h1>Posts</h1>
-      {
-        posts.map((post, index) => (
-        <Link key={index} href={`/posts/${post.id}`}>
-          <div style={linkStyle}>
-            <h2>{post.title}</h2>
-            <p style={authorStyle}>Author: {post.username}</p>
-          </div>
-        </Link>)
-        )
-      }
-    </div>
-  )
-}
-
-const linkStyle = { cursor: 'pointer', borderBottom: '1px solid rgba(0, 0, 0 ,.1)', padding: '20px 0px' }
-const authorStyle = { color: 'rgba(0, 0, 0, .55)', fontWeight: '600' }
-```
-
-### Deleting existing data
-
-Now the app is ready to test out, but before we do let's delete the existing data in the database that does not contain an author field. To do so, follow these steps:
-
-1. Open the Amplify Console
-
-```sh
-$ amplify console api
-
-> Choose GraphQL
-```
-
-2. Click on __Data sources__
-3. Click on the link to the database
-4. Click on the __Items__ tab.
-5. Select the items in the database and delete them by choosing __Delete__ from the __Actions__ button.
+### Testing it out
 
 Next, run the app:
 
@@ -1288,7 +1264,7 @@ To do so, create a new file called __my-posts.js__ in the pages directory. This 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { API, Auth } from 'aws-amplify'
-import { postsByUsername } from '../graphql/queries'
+import { postsByUsername } from '../graphql'
 
 export default function MyPosts() {
   const [posts, setPosts] = useState([])
@@ -1300,7 +1276,7 @@ export default function MyPosts() {
     const postData = await API.graphql({
       query: postsByUsername, variables: { username }
     })
-    setPosts(postData.data.postsByUsername.items)
+    setPosts(postData.data.postsByUsername)
   }
   return (
     <div>
@@ -1319,8 +1295,7 @@ export default function MyPosts() {
   )
 }
 
-const linkStyle = { cursor: 'pointer', borderBottom: '1px solid rgba(0, 0, 0 ,.1)', padding: '20px 0px' }
-const authorStyle = { color: 'rgba(0, 0, 0, .55)', fontWeight: '600' }
+const linkStyle = { cursor: 'pointer', borderBottom: '1px solid rgba(0, 0
 ```
 
 ### Updating the nav
@@ -1399,10 +1374,10 @@ In this file, add the following code:
 import { useEffect, useState } from 'react'
 import { API } from 'aws-amplify'
 import { useRouter } from 'next/router'
-import SimpleMDE from "react-simplemde-editor"
-import "easymde/dist/easymde.min.css"
-import { updatePost } from '../../graphql/mutations'
-import { getPost } from '../../graphql/queries'
+import SimpleMDE from 'react-simplemde-editor'
+import 'easymde/dist/easymde.min.css'
+import { updatePost } from '../../graphql'
+import { getPostById } from '../../graphql'
 
 function EditPost() {
   const [post, setPost] = useState(null)
@@ -1413,8 +1388,8 @@ function EditPost() {
     fetchPost()
     async function fetchPost() {
       if (!id) return
-      const postData = await API.graphql({ query: getPost, variables: { id }})
-      setPost(postData.data.getPost)
+      const postData = await API.graphql({ query: getPostById, variables: { postId: id }})
+      setPost(postData.data.getPostById)
     }
   }, [id])
   if (!post) return null
@@ -1426,7 +1401,7 @@ function EditPost() {
     if (!title || !content) return
     await API.graphql({
       query: updatePost,
-      variables: { input: { title, content, id } },
+      variables: { post: { title, content, id }},
       authMode: "AMAZON_COGNITO_USER_POOLS"
     })
     console.log('post successfully updated!')
@@ -1452,7 +1427,7 @@ const inputStyle = { marginBottom: 10, height: 35, width: 300, padding: 8, fontS
 const containerStyle = { padding: '0px 40px' }
 const buttonStyle = { width: 300, backgroundColor: 'white', border: '1px solid', height: 35, marginBottom: 20, cursor: 'pointer' }
 
-export default EditPost      
+export default EditPost    
 ```
 
 Next, open __pages/my-posts.js__. We'll make a few updates to this page:
@@ -1468,9 +1443,9 @@ Update this file with the following code:
 // pages/my-posts.js
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { API, Auth } from 'aws-amplify'
-import { postsByUsername } from '../graphql/queries'
-import { deletePost as deletePostMutation } from '../graphql/mutations'
+import { API } from 'aws-amplify'
+import { postsByUsername } from '../graphql'
+import { deletePost as deletePostMutation } from '../graphql'
 
 export default function MyPosts() {
   const [posts, setPosts] = useState([])
@@ -1478,20 +1453,22 @@ export default function MyPosts() {
     fetchPosts()
   }, [])
   async function fetchPosts() {
-    const { username } = await Auth.currentAuthenticatedUser()
     const postData = await API.graphql({
-      query: postsByUsername, variables: { username }
+      query: postsByUsername,
+      authMode: "AMAZON_COGNITO_USER_POOLS"
     })
-    setPosts(postData.data.postsByUsername.items)
+    setPosts(postData.data.postsByUsername)
   }
-  async function deletePost(id) {
+  async function deletePost(postId) {
+    console.log("postId: ", postId)
     await API.graphql({
       query: deletePostMutation,
-      variables: { input: { id } },
+      variables: { postId },
       authMode: "AMAZON_COGNITO_USER_POOLS"
     })
     fetchPosts()
   }
+
   return (
     <div>
       <h1>My Posts</h1>
@@ -1499,7 +1476,7 @@ export default function MyPosts() {
         posts.map((post, index) => (
           <div key={index} style={itemStyle}>
             <h2>{post.title}</h2>
-            <p style={authorStyle}>Author: {post.username}</p>
+            <p style={authorStyle}>Author: {post.owner}</p>
             <Link href={`/edit-post/${post.id}`}><a style={linkStyle}>Edit Post</a></Link>
             <Link href={`/posts/${post.id}`}><a style={linkStyle}>View Post</a></Link>
             <button
@@ -1529,22 +1506,22 @@ Incremental Static Regeneration allows you to update existing pages by re-render
 To enable this, open __pages/posts/[id].js__ and update the `getStaticProps` method with the following:
 
 ```js
-
 export async function getStaticProps ({ params }) {
   const { id } = params
   const postData = await API.graphql({
-    query: getPost, variables: { id }
+    query: getPostById, variables: { postId: id }
   })
   return {
     props: {
-      post: postData.data.getPost
+      post: postData.data.getPostById
     },
     // Next.js will attempt to re-generate the page:
     // - When a request comes in
     // - At most once every second
-    revalidate: 1 // adds Incremental Static Generation, sets time in seconds
+    revalidate: 100  // adds Incremental Static Generation, sets time in seconds
   }
 }
+
 ```
 
 To test it out, restart the server or run a new build:
@@ -1574,28 +1551,10 @@ npx serverless
 
 ## Removing Services
 
-If at any time, or at the end of this workshop, you would like to delete a service from your project & your account, you can do this by running the `amplify remove` command:
+To delete the project, run the `destroy` comand:
 
 ```sh
-$ amplify remove auth
-
-$ amplify push
-```
-
-If you are unsure of what services you have enabled at any time, you can run the `amplify status` command:
-
-```sh
-$ amplify status
-```
-
-`amplify status` will give you the list of resources that are currently enabled in your app.
-
-### Deleting the Amplify project and all services
-
-If you'd like to delete the entire project, you can run the `delete` command:
-
-```sh
-$ amplify delete
+cdk destroy
 ```
 
 ## Next steps / challenge
