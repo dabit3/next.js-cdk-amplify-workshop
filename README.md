@@ -2,13 +2,17 @@
 
 ![Next.js Amplify Workshop](images/banner.jpg)
 
-In this workshop we'll build a full stack cloud application with Next.js, AWS CDK, AWS AppSync, & [AWS Amplify](https://docs.amplify.aws/).
+In this workshop we'll build a full stack cloud application with [Next.js](https://nextjs.org/), [AWS CDK](https://aws.amazon.com/cdk/), [AWS AppSync](https://aws.amazon.com/appsync/), & [AWS Amplify](https://docs.amplify.aws/).
 
 ### Overview
 
 We'll start from scratch, creating a new Next.js app. We'll then, step by step, use CDK to build out and configure our cloud infrastructure and then use the [Amplify JS Libraries](https://github.com/aws-amplify/amplify-js) to connect the Next.js app to the APIs we create using CDK.
 
-The app will be a multi-user blogging app with a markdown editor. When you think of many types of applications like Instagram, Twitter, or Facebook, they consist of a list of items and often the ability to drill down into a single item view. The app we will be building will be very similar to this, displaying a list of posts with data like the title, content, and author of the post.
+The app will be a multi-user blogging app with a markdown editor.
+
+When you think of many types of applications like Instagram, Twitter, or Facebook, they consist of a list of items and often the ability to drill down into a single item view. The app we will be building will be very similar to this, displaying a list of posts with data like the title, content, and author of the post.
+
+We'll then add user authentication and authorization, enabling signed in users to edit and delete their own posts.
 
 This workshop should take you anywhere between 6 to 8 hours to complete.
 
