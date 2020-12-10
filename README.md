@@ -664,7 +664,7 @@ async function postsByUsername(username: string) {
 export default postsByUsername
 ```
 
-### Deploying and testing
+## Deploying and testing
 
 To see what will be deployed before making changes at any time, you can build the project and run the CDK `diff` command:
 
@@ -678,7 +678,7 @@ At this point we are ready to deploy the back end. To do so, run the following c
 npm run build && cdk deploy -O cdk-exports.json
 ```
 
-## Creating a user
+### Creating a user
 
 Since this is an authenticated API, we need to create a user in order to test out the API.
 
@@ -690,22 +690,37 @@ In this dashboard, click __Users and groups__ to create a new user. _Note that y
 
 ![Create a new user](images/cognito_create_user.png)
 
-###
+### Testing in AppSync
 
-To test it out we can use the GraphiQL editor in the AppSync dashboard. To open the AppSync dashboard, go to .
+Now that the user is created, we can make both authenticated and unauthenticated requests in AppSync.
 
+To test out the API we can use the GraphiQL editor in the AppSync dashboard. To do so, open the [AppSync Dashboard](https://console.aws.amazon.com/appsync) and search for __cdk-blog-app__.
+
+Next, click on __Queries__ to open the query editor.
+
+Here, you will be able to choose between public access (API Key) and private access (Amazon Cognito User Pools).
+
+![AppSync Authentication](images/appsyncauth.png)
+
+To make any authenticated requests (for mutations or querying by user ID), you will need to sign in using the user you created in the Cognito dashboard:
+
+![AppSync Authentication](images/appsynccognito.png)
+
+_Note that the first time you sign in, you will be prompted to change your password_.
 
 In the AppSync dashboard, click on __Queries__ to open the GraphiQL editor. In the editor, create a new post with the following mutation:
 
 ```graphql
 mutation createPost {
   createPost(input: {
+    id: "001"
     title: "My first post"
     content: "Hello world!"
   }) {
     id
     title
     content
+    owner
   }
 }
 ```
@@ -719,8 +734,45 @@ query listPosts {
       id
       title
       content
+      owner
     }
   }
+}
+```
+
+You can also test out other operations:
+
+```graphql
+mutation updatePost {
+  updatePost(post: {
+    id: "001"
+    title: "My updated title"
+  }) {
+    id
+    title
+  }
+}
+
+query getPostById {
+  getPostById(postId: "001") {
+    id
+    title
+    content
+    owner
+  }
+}
+
+query postsByUsername {
+  postsByUsername {
+    id
+    title
+    content
+    owner
+  }
+}
+
+mutation deletePost {
+  deletePost(postId: "001")
 }
 ```
 
@@ -728,10 +780,29 @@ query listPosts {
 
 Now, our API is created & we can test it out in our app!
 
-The first thing we need to do is to configure our Next.js app to be aware of our Amplify project. We can do this by referencing the auto-generated `aws-exports.js` file that was created by the CLI.
+The first thing we need to do is create a configuration file that we can consume in the Next.js app containing the resources we just created using CDK.
+
+The CDK CLI created a new file in the root of our Next.js app called `cdk-exports.json`, located at `next-frontent/cdk-exports.json`. What we need to do next is create a file called `aws-exports.js` that will take these values and make them consumable by the Amplify client library:
+
+```js
+// next-frontend/aws-exports.js
+import { NextBackendStack } from './cdk-exports.json'
+
+const config = {
+  aws_project_region: NextBackendStack.ProjectRegion,
+  aws_user_pools_id: NextBackendStack.UserPoolId,
+  aws_user_pools_web_client_id: NextBackendStack.UserPoolClientId,
+  aws_appsync_graphqlEndpoint: NextBackendStack.GraphQLAPIURL,
+  aws_appsync_apiKey: NextBackendStack.AppSyncAPIKey,
+  aws_appsync_authenticationType: "API_KEY"
+}
+
+export default config
+```
+
+The next thing we need to do is to configure our Next.js app to be aware of our AWS configuration. We can do this by referencing the new `aws-exports.js` file we just created.
 
 Create a new file called __configureAmplify.js__ in the root of the project and add the following code:
-
 
 ```js
 import Amplify from 'aws-amplify'
