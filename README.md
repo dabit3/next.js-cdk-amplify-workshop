@@ -684,9 +684,9 @@ Since this is an authenticated API, we need to create a user in order to test ou
 
 To create a user, open the [Amazon Cognito Dashboard](https://console.aws.amazon.com/cognito) and click on __Manage User Pools__.
 
-Next, click on the User Pool that starts with __cdkbloguserpool__. __Be sure that you are in the same region in the AWS Console that you created your project in, or else the User Pool will not show up__
+Next, click on the User Pool that starts with __cdkbloguserpool__. _Be sure that you are in the same region in the AWS Console that you created your project in, or else the User Pool will not show up_
 
-In this dashboard, click __Users and groups__ to create a new user. Note that you do not need to input a phone number to create a new user:
+In this dashboard, click __Users and groups__ to create a new user. _Note that you do not need to input a phone number to create a new user:_
 
 ![Create a new user](images/cognito_create_user.png)
 
