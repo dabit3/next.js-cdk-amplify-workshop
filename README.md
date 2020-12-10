@@ -1350,6 +1350,8 @@ async function authListener() {
 }
 ```
 
+> The updated component should look like [this](https://github.com/dabit3/next.js-cdk-amplify-workshop/blob/main/next-frontend/pages/_app.js)
+
 Next, test it out by restarting the dev server:
 
 ```sh
