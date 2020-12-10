@@ -56,7 +56,7 @@ Next, create the Next.js app inside the __cdk-next__ directory:
 $ npx create-next-app next-frontend
 ```
 
-Now change into the new app directory & install these dependencies:
+Now change into the new app directory & install these dependencies using either `npm` or `yarn`:
 
 ```bash
 $ cd next-frontend
@@ -97,10 +97,10 @@ To view the resources to be deployed or changes in infrastructure at any time, y
 $ cdk diff
 ```
 
-Next, install the CDK dependencies we'll be using:
+Next, install the CDK dependencies we'll be using using either `npm` or `yarn`:
 
 ```sh
-$ yarn add @aws-cdk/aws-cognito @aws-cdk/aws-appsync @aws-cdk/aws-lambda @aws-cdk/aws-dynamodb
+$ npm install @aws-cdk/aws-cognito @aws-cdk/aws-appsync @aws-cdk/aws-lambda @aws-cdk/aws-dynamodb
 ```
 
 ## Creating the authentication service with CDK
