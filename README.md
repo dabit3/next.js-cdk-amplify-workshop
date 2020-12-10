@@ -1109,7 +1109,7 @@ const postData = await API.graphql({
 })
 ```
 
-Let's create the page that will allow users to create a new post.
+Let's create the page that will allow users to create a new post using an authenticated request.
 
 ## Adding the Create Post form and page
 
