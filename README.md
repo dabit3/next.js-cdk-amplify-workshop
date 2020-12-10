@@ -842,7 +842,7 @@ Now, our app is ready to start using our AWS services.
 
 ### Defining the client-side GraphQL operations
 
-Next. create a file in the __next-frontend__ folder named __graphql.js__.
+Next, create a file in the root of the __next-frontend__ folder named __graphql.js__.
 
 In this file, add the GraphQL operation definitions that we'll be needing for the client application:
 
