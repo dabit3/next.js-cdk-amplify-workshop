@@ -28,6 +28,10 @@ Before we begin, make sure you have the following:
 aws configure
 ```
 
+> When configuring the IAM user, be sure to give them Administrator Access Privileges
+
+![IAM Permissions](images/privileges.png)
+
 We will be working from a terminal using a [Bash shell](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) to run CDK CLI commands to provision infrastructure and also to run a local version of the Next.js app and test it in a web browser.
 
 > To view the CDK pre-requisite docs, click [here](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
