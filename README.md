@@ -682,11 +682,13 @@ export default postsByUsername
 
 ## Deploying and testing
 
-To see what will be deployed before making changes at any time, you can build the project and run the CDK `diff` command:
+To see what will be deployed before making changes at any time, you can build the project and run the CDK `diff` command from the root of the CDK project:
 
 ```sh
 npm run build && cdk diff
 ```
+
+> Note that if you run this command from another location other than the root of the CDK project, it will not work.
 
 At this point we are ready to deploy the back end. To do so, run the following command from your terminal in the root directory of your CDK project:
 
