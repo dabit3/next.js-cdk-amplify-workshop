@@ -189,7 +189,7 @@ This code will create an AppSync GraphQL API with two types of authentication: A
 
 Our app will be using a combination of public and private access to achieve a common real world use case that combines the two types of access.
 
-For example, we want developers to be able to read blog posts whether they are signed in or not, but if a user is signed up, we want to give them the correct access so that they can update or delete posts that they have created (but only their own posts).
+For example, we want developers to be able to read blog posts whether they are signed in or not, but if a user is signed in, we want to give them the correct access so that they can update or delete posts that they have created (but only their own posts).
 
 ## Adding the GraphQL schema
 
