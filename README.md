@@ -1268,9 +1268,9 @@ export default function MyPosts() {
     fetchPosts()
   }, [])
   async function fetchPosts() {
-    const { username } = await Auth.currentAuthenticatedUser()
     const postData = await API.graphql({
-      query: postsByUsername, variables: { username }
+      query: postsByUsername,
+      authMode: "AMAZON_COGNITO_USER_POOLS"
     })
     setPosts(postData.data.postsByUsername)
   }
@@ -1282,7 +1282,7 @@ export default function MyPosts() {
         <Link key={index} href={`/posts/${post.id}`}>
           <div style={linkStyle}>
             <h2>{post.title}</h2>
-            <p style={authorStyle}>Author: {post.username}</p>
+            <p style={authorStyle}>Author: {post.owner}</p>
           </div>
         </Link>)
         )
