@@ -1291,7 +1291,8 @@ export default function MyPosts() {
   )
 }
 
-const linkStyle = { cursor: 'pointer', borderBottom: '1px solid rgba(0, 0
+const linkStyle = { cursor: 'pointer', borderBottom: '1px solid rgba(0, 0, 0 ,.1)', padding: '20px 0px' }
+const authorStyle = { color: 'rgba(0, 0, 0, .55)', fontWeight: '600' }
 ```
 
 ### Updating the nav
