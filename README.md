@@ -385,9 +385,9 @@ new cdk.CfnOutput(this, "UserPoolClientId", {
 
 ## Adding the Lambda function code
 
-The last thing we need to do is write the code for the Lambda function. The Lambda function will map the GraphQL operations coming in via the event into a call to the DynamoDB database. We will have functions for all of the operations defined in the GraphQL schema. The Lambda handler will read the GraphQL operation from the event object and call the appropriate function.
+The last thing we need to do is write the code for the Lambda function. The Lambda function will map the GraphQL operations coming in via the event into a call to the DynamoDB database. We will have functions for all of the operations defined in the GraphQL schema. The Lambda handler will read the GraphQL operation from the `event` object and call the appropriate function.
 
-Create a folder named lambda-fns in the root directory of the CDK project. Next, change into this directory and initialize a new package.json file and install the `uuid` library:
+Create a folder named __lambda-fns__ in the root directory of the CDK project. Next, change into this directory and initialize a new __package.json__ file and install the `uuid` library:
 
 ```sh
 cd lambda-fns
@@ -475,7 +475,7 @@ exports.handler = async (event:AppSyncEvent) => {
 }
 ```
 
-The handler function will use the GraphQL operation available in the event.info.fieldname to call the various functions that will interact with the DynamoDB database.
+The handler function will use the GraphQL operation available in the `event.info.fieldname` to call the various functions that will interact with the DynamoDB database.
 
 The function will also be passed an `identity` object if the request has been authenticated by AppSync. If the event is coming from an authenticated request, then the `identity` object will be null.
 
