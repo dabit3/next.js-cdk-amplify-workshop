@@ -734,7 +734,7 @@ In the AppSync dashboard, click on __Queries__ to open the GraphiQL editor. In t
 
 ```graphql
 mutation createPost {
-  createPost(input: {
+  createPost(post: {
     id: "001"
     title: "My first post"
     content: "Hello world!"
