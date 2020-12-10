@@ -802,7 +802,9 @@ Now, our API is created & we can use it in our app!
 
 The first thing we need to do is create a configuration file that we can consume in the Next.js app containing the AWS resources we just created using CDK.
 
-The CDK CLI created a new file in the root of our Next.js app called `cdk-exports.json`, located at `next-frontent/cdk-exports.json`. What we need to do next is create a file called `aws-exports.js` that will take these values and make them consumable by the Amplify client library:
+The CDK CLI created a new file in the root of our Next.js app called `cdk-exports.json`, located at `next-frontent/cdk-exports.json`. What we need to do next is create a file that will take these values and make them consumable by the Amplify client library.
+
+To do so, create a file named __aws-exports.js__ in the root of the __next-frontend__ directory and add the following code:
 
 ```js
 // next-frontend/aws-exports.js
