@@ -14,7 +14,7 @@ When you think of many types of applications like Instagram, Twitter, or Faceboo
 
 We'll then add user authentication and authorization, enabling signed in users to edit and delete their own posts.
 
-This workshop should take you anywhere between 6 to 8 hours to complete.
+This workshop should take you anywhere between 4 to 6 hours to complete.
 
 ### Environment & prerequisites
 
