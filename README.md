@@ -1554,9 +1554,17 @@ npx serverless
 
 ## Removing Services
 
-To delete the project, run the `destroy` comand:
+To delete the frontend, run the `remove` comand:
 
 ```sh
+cd next-frontend
+npx serverless remove
+```
+
+To delete the backend, run the `destroy` comand:
+
+```sh
+cd next-backend
 cdk destroy
 ```
 
