@@ -95,6 +95,22 @@ To build the project at any time, you can run the `build` command:
 $ npm run build
 ```
 
+#### Bootstrapping
+
+When you run `cdk bootstrap`, cdk deploys the CDK toolkit stack into an AWS environment. The `cdk bootstrap` command is run one time per account / region.
+
+If this is your first time using CDK, run the following command:
+
+```sh
+$ cdk bootstrap
+
+# or
+
+$ cdk bootstrap --profile <preferred-aws-profile>
+```
+
+#### View changes
+
 To view the resources to be deployed or changes in infrastructure at any time, you can run the CDK `diff` command:
 
 ```sh
@@ -269,7 +285,7 @@ To create the Lambda function, add the following code below the API definition i
 
 // Create the function
 const postLambda = new lambda.Function(this, 'AppSyncPostHandler', {
-  runtime: lambda.Runtime.NODEJS_12_X,
+  runtime: lambda.Runtime.NODEJS_14_X,
   handler: 'main.handler',
   code: lambda.Code.fromAsset('lambda-fns'),
   memorySize: 1024
