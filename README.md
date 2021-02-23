@@ -412,7 +412,7 @@ Create a folder named __lambda-fns__ in the root directory of the CDK project. N
 ```sh
 cd lambda-fns
 npm init --y
-npm install uuid
+npm install uuid && npm install -D @types/uuid
 ```
 
 In the __lambda-fns__ folder, create the following files:
@@ -506,7 +506,7 @@ The function will also be passed an `identity` object if the request has been au
 const AWS = require('aws-sdk')
 const docClient = new AWS.DynamoDB.DocumentClient()
 import Post from './Post'
-const { v4: uuid } = require('uuid')
+import { v4 as uuid } from 'uuid'
 
 async function createPost(post: Post, username: string) {
   if (!post.id) {
