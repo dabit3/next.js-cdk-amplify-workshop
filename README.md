@@ -241,14 +241,14 @@ input UpdatePostInput {
 type Query {
   getPostById(postId: ID!): Post
     @aws_api_key @aws_cognito_user_pools
-  listPosts: [Post]
+  listPosts: [Post]!
     @aws_api_key @aws_cognito_user_pools
-  postsByUsername: [Post]
+  postsByUsername: [Post]!
     @aws_cognito_user_pools
 }
 
 type Mutation {
-  createPost(post: PostInput!): Post
+  createPost(post: PostInput!): Post!
     @aws_cognito_user_pools
   deletePost(postId: ID!): ID
     @aws_cognito_user_pools
@@ -257,7 +257,7 @@ type Mutation {
 }
 
 type Subscription {
-  onCreatePost: Post
+  onCreatePost: Post!
     @aws_subscribe(mutations: ["createPost"])
 }
 ```
@@ -616,6 +616,7 @@ export default deletePost
 // lambda-fns/updatePost.ts
 const AWS = require('aws-sdk')
 const docClient = new AWS.DynamoDB.DocumentClient()
+import Post from './Post'
 
 type Params = {
   TableName: string | undefined,
@@ -627,7 +628,7 @@ type Params = {
   ReturnValues: string,
 }
 
-async function updatePost(post: any, username: string) {
+async function updatePost(post: Post, username: string) {
   let params : Params = {
     TableName: process.env.POST_TABLE,
     Key: {
@@ -644,7 +645,7 @@ async function updatePost(post: any, username: string) {
     ReturnValues: "UPDATED_NEW"
   }
   let prefix = "set "
-  let attributes = Object.keys(post)
+  let attributes = Object.keys(post) as (keyof typeof post)[];
   for (let i=0; i<attributes.length; i++) {
     let attribute = attributes[i]
     if (attribute !== "id") {
