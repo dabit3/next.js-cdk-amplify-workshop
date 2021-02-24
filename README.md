@@ -1,4 +1,4 @@
-# CDK with Next.js and AWS Amplify Workshop
+# Full Stack Cloud Application Development on AWS with Next.js, CDK, AppSync, & Amplify
 
 ![Next.js Amplify Workshop](images/banner.jpg)
 
